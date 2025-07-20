@@ -80,7 +80,7 @@ def buat_tabel_distribusi_frekuensi(data_kolom, nama_kolom):
     return df
 
 def generate_bilangan_acak(n):
-    return [random.randint(0, 99) for _ in range(n)]
+    return [random.randint(1, 100) for _ in range(n)]
 
 def dapatkan_nilai_tengah(bilangan, tabel):
     for _, row in tabel.iterrows():
@@ -102,7 +102,6 @@ tabel_ekg = buat_tabel_distribusi_frekuensi(data_acak['EKG'], "EKG")
 tabel_hemo = buat_tabel_distribusi_frekuensi(data_acak['Hemodialisa'], "Hemodialisa")
 
 jumlah_bulan = 30
-random.seed(42)
 acak_eeg = generate_bilangan_acak(jumlah_bulan)
 acak_ekg = generate_bilangan_acak(jumlah_bulan)
 acak_hemo = generate_bilangan_acak(jumlah_bulan)
