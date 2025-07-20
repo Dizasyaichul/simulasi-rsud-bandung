@@ -64,32 +64,50 @@ def buat_tabel_distribusi_frekuensi(data_kolom, nama_kolom):
         'Frekuensi': frekuensi_list
     })
 
+    # Hitung probabilitas
     df['Probabilitas'] = (df['Frekuensi'] / N).round(3)
     df['Probabilitas Kumulatif'] = df['Probabilitas'].cumsum().round(15)
     df.loc[df.index[-1], 'Probabilitas Kumulatif'] = 1.0
     df['Probabilitas Kumulatif (x100)'] = (df['Probabilitas Kumulatif'] * 100).round().astype(int)
-    df['Interval Angka Acak'] = df['Probabilitas Kumulatif (x100)'].shift(fill_value=0).astype(int).astype(str) + " - " + df['Probabilitas Kumulatif (x100)'].astype(str)
 
+    # Tentukan Interval Angka Acak hanya jika frekuensi > 0
+    interval_acak = []
+    prev = 0
+    for i, row in df.iterrows():
+        current = row['Probabilitas Kumulatif (x100)']
+        freq = row['Frekuensi']
+        if freq == 0 or current < prev:
+            interval_acak.append("-")
+        else:
+            interval_acak.append(f"{prev} - {current}")
+            prev = current + 1
+    df['Interval Angka Acak'] = interval_acak
+
+    # Tambah baris total
     total_row = {
         'Kelas': 'Total', 'Interval Kelas': '', 'Nilai Tengah': '',
         'Frekuensi': df['Frekuensi'].sum(), 'Probabilitas': '',
         'Probabilitas Kumulatif': '', 'Probabilitas Kumulatif (x100)': '',
         'Interval Angka Acak': ''
     }
+
     df = pd.concat([df, pd.DataFrame([total_row])], ignore_index=True)
     return df
+
 
 def generate_bilangan_acak(n):
     return [random.randint(1, 100) for _ in range(n)]
 
 def dapatkan_nilai_tengah(bilangan, tabel):
-    for _, row in tabel.iterrows():
-        if row['Kelas'] == 'Total':
-            continue
-        batas = row['Interval Angka Acak'].split(' - ')
+    for i in range(len(tabel)):
+        interval = tabel['Interval Angka Acak'][i]
+        if interval == '-' or pd.isna(interval):
+            continue  # lewati baris yang tidak punya interval
+        batas = interval.split(' - ')
         if int(batas[0]) <= bilangan <= int(batas[1]):
-            return row['Nilai Tengah']
-    return 0
+            return tabel['Nilai Tengah'][i]
+    return None  # fallback jika tidak ditemukan
+
 
 # -------------------- Simulasi --------------------
 hasil_eeg = hitung_parameter_awal(data_acak, 'EEG')
